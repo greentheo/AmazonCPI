@@ -1,0 +1,14 @@
+Package: AmazonCPI
+Type: Package
+Title: Computes a CPI based on Amazon top 100 products
+Version: 1.0
+Date: 2014-12-02
+Author: Theodore Van Rooy
+Maintainer: Who to complain to <theo@royaltyanalytics.com>
+Description: More about what it does (maybe more than one line)
+License: What license is it under?
+Lazyload: true
+Imports:
+    lubridate,
+    dplyr,
+    rvest
