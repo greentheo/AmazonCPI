@@ -1,0 +1,17 @@
+---
+title: "AmazonCPIAnalysis"
+author: "Theo Van Rooy"
+date: "2/26/2015"
+output: html_document
+runtime: shiny
+---
+
+
+```{r, echo=FALSE}
+
+files = list.files('/home/production/AmazonCPI/',pattern = 'Top100wCats*', full.names = T)
+
+data=read.csv(files[1])
+
+```
+

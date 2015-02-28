@@ -8,6 +8,7 @@ Maintainer: Who to complain to <theo@royaltyanalytics.com>
 Description: More about what it does (maybe more than one line)
 License: What license is it under?
 Lazyload: true
+Depends: methods
 Imports:
     lubridate,
     dplyr,

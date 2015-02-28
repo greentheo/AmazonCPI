@@ -13,7 +13,7 @@ getData = function(timeout=1){
   items = data.frame(itemTitle=NA, stars=NA, reviews=NA, azprice=NA, 
                      link=NA, category=NA, subCategory=NA)
   for(i in 1:nrow(highCats)){
-    cat('getItems and subcategories for ', highCats$text[i])
+    cat('\n getItems and subcategories for ', as.character(highCats$text[i]), '-')
     Sys.sleep(1)
     #get subCats
     subCats = getCats(as.character(highCats$link[i]))
@@ -21,22 +21,30 @@ getData = function(timeout=1){
     #getItems
     for(j in 1:5){
       Sys.sleep(timeout)
-      items = rbind(items, 
-                    getItems(url=paste(highCats$link[i], "#",j, sep=''), highCats$text[i], NA))
+      gitems = try(getItems(url=paste(highCats$link[i], "#",j, sep=''), highCats$text[i], NA))
+      if(class(gitems)!="try-error") 
+        items = rbind(items, gitems)
+      
     }
     
     #get items on subPages
     for(j in 1:nrow(subCats)){  
+      cat(' ', as.character(subCats$text[j]))
       for(k in 1:5){
         Sys.sleep(timeout)
-        items = rbind(items, getItems(url=paste(subCats$link[j], "#",k, sep=''), 
-                                      highCats$text[i], subCats$text[j]))
+        gitems=try(getItems(url=paste(subCats$link[j], "#",k, sep=''), 
+                            highCats$text[i], subCats$text[j]))
+        if(class(gitems)!="try-error")
+          items = rbind(items, gitems)
       }      
     }
   }
-  return(items)
+  return(items[-1,])
 }
 
+#' to get categories
+#' @param url, the url of the categories to retrieve
+#' @export
 getCats = function(url){
   cats = html(url)
   categories = cats %>%
@@ -44,6 +52,41 @@ getCats = function(url){
   categoriesDF = data.frame(text=html_text(categories), link=html_attr(categories, 'href'))
 }
 
+#' to get individual items fromt he "getItems" function
+#' @param items, the items to get detailed info about
+#' @param timeout, the amouunt of time to wait between requests
+#' @export
+getIndivItems = function(items, timeout=1){
+  uniqueItems = items %.%
+    group_by(itemTitle) %.%
+    summarize(url=link[1])
+  
+  indivItems = data.frame(uniqueItems, fullTitle=NA,
+                          listPrice=NA,
+                          azPrice=NA,
+                          features=NA,
+                          reviews=NA
+  )
+  
+  
+  for(i in 1:nrow(uniqueItems)){
+    Sys.sleep(timeout)
+    item = try(getItem(indivItems$url[i]))
+    if(class(item)!="try-error"){
+      if(length(item)==length(3:ncol(indivItems))){
+        indivItems[i,3:ncol(indivItems)] = item
+      }
+    }
+  }
+  
+  return(indivItems)
+}
+
+#' get items
+#' @param url the url to fetch the items from 
+#' @param category labelling
+#' @param subCategory labeling
+#' @export
 getItems = function(url, category, subCategory){
   items = html(url)
   objs = items %>%
@@ -53,15 +96,37 @@ getItems = function(url, category, subCategory){
   if(length(reviews)!=20) reviews=NA
   stars=html_text(html_nodes(objs, css='.swSprite span'))
   if(length(stars)!=20) stars=NA
+  price=html_text(html_nodes(objs, css='.zg_price .price'))
+  if(length(price)!=20) price=NA
   
   objs = data.frame(
     itemTitle=html_text(html_nodes(objs, css='.zg_title a')), 
     stars=stars,
     reviews=reviews,
-    azprice=html_text(html_nodes(objs, css='.zg_price .price')),
+    azprice=price,
     link=gsub('\n','',html_attr(html_nodes(objs, css='.zg_title a'), 'href')),
     category=category,
     subCategory=subCategory
   ) 
+  
+}
+
+#' get a single item
+#' @param url, get the information for a single item/page
+#' @export
+getItem = function(url){
+  item = html(url)
+  fullTitle=html_text(html_nodes(item, css='#productTitle'))
+  listPrice=html_text(html_nodes(item, css='.a-text-strike'))
+  azPrice=html_text(html_nodes(item, css='#priceblock_ourprice'))
+  features=html_text(html_nodes(item, css='#feature-bullets'))
+  reviews=html_text(html_nodes(item, css='#revMHLContainer'))
+  
+ return(data.frame(fullTitle=fullTitle,
+                   listPrice=listPrice,
+                   azPrice=azPrice,
+                   features=features,
+                   reviews=reviews
+                  ))
   
 }
