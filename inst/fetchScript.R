@@ -13,7 +13,7 @@ for(i in 1:length(files)){
   date = strsplit(strsplit(files[i], '/')[[1]][6], '_')[[1]][2]
   
   #by Item %.%
-  data %.% 
+  masterSummary = data %.% 
     mutate(azpriceNum=as.numeric(gsub('\\$','',as.character(data$azprice)))) %.%
     group_by(itemTitle) %.%
     summarize(price=azpriceNum[1],
@@ -24,10 +24,11 @@ for(i in 1:length(files)){
               numItems=length(itemTitle),
               weightedAvg=sum(price*reviews)/sum(reviews),
               date=ymd(date)
-    ) %>% write.csv(file=gsub('Top100wCats', 'masterSummary',files[i]))
+    )
+  write.csv(masterSummary, file=gsub('Top100wCats', 'masterSummary',files[i]))
     
   #byCategory
-  data %.% 
+  catSummary = data %.% 
     mutate(azpriceNum=as.numeric(gsub('\\$','',as.character(data$azprice)))) %.%
     group_by(category, itemTitle) %.%
     summarize(price=azpriceNum[1],
@@ -39,6 +40,21 @@ for(i in 1:length(files)){
               numItems=length(itemTitle),
               weightedAvg=sum(price*reviews)/sum(reviews),
               date=ymd(date)
-    ) %>% write.csv(file=gsub('Top100wCats','categorySummary',files[i]))
+    ) 
+  write.csv(catSummary, file=gsub('Top100wCats','categorySummary',files[i]))
 
+if(i==1){
+  masterMasterSummary=masterSummary
+  masterCatSummary=catSummary
+}else{
+  masterMasterSummary = rbind(masterMasterSummary, masterSummary)
+  masterCatSummary = rbind(masterCatSummary, catSummary)
+  
+}  
+  
 }
+
+#write the combined summary into 1 file for each
+write.csv(masterMasterSummary, '/home/production/AmazonCPI/masterSummary.csv')
+write.csv(masterCatSummary, '/home/production/AmazonCPI/catSummary.csv')
+

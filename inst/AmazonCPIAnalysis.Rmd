@@ -1,17 +1,43 @@
 ---
-title: "AmazonCPIAnalysis"
-author: "Theo Van Rooy"
-date: "2/26/2015"
+title: "Amazon CPI Analysis"
 output: html_document
 runtime: shiny
 ---
 
+## Average Price of All Goods in the Top 100 Lists of Amazon.com
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
+library(ggplot2, quietly=T)
+library(lubridate, quietly=T)
+library(shiny, quietly=T)
 
-files = list.files('/home/production/AmazonCPI/',pattern = 'Top100wCats*', full.names = T)
+masterSummary = read.csv('/home/production/AmazonCPI/masterSummary.csv')
+catSummary = read.csv('/home/production//AmazonCPI/catSummary.csv')
 
-data=read.csv(files[1])
+masterSummary$date = ymd(masterSummary$date)
+catSummary$date = ymd(catSummary$date)
 
+
+ggplot(masterSummary, aes(x=date, y=avgPrice))+geom_line( width=2, color="black")+
+  geom_line(stat="smooth", color="blue", alpha=.5)+
+  labs(y="$")
+  
 ```
 
+(Note: blue line is the smoothed price trend)
+
+## Average Price of all Goods by Category in the Top 100 Lists of Amazon.com
+
+```{r echo=FALSE, warning=FALSE}
+
+inputPanel({
+  selectInput(inputId = 'catSelect', label = 'Category Sub Select', choices = unique(catSummary$category), selected = unique(catSummary$category), multiple = T)
+})
+
+ggplot(catSummary, aes(x=date, y=(avgPrice), color=category))+geom_line()+
+  labs(y="$", title="Nominal Prices")
+
+ggplot(catSummary, aes(x=date, y=log(avgPrice), color=category))+geom_line()+
+  labs(y="log($)", title="Log Prices")
+
+```
