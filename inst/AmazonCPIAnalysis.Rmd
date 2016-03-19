@@ -4,12 +4,14 @@ output: html_document
 runtime: shiny
 ---
 
-## Average Price of All Goods in the Top 100 Lists of Amazon.com
+## Average Price of All Goods in the Top 100 Lists of Amazon.com (Nominal and Log)
 
 ```{r, echo=FALSE, warning=FALSE}
 library(ggplot2, quietly=T)
 library(lubridate, quietly=T)
-library(shiny, quietly=T)
+library(dplyr, quietly=T)
+library(magrittr)
+library(broom)
 
 masterSummary = read.csv('/home/production/AmazonCPI/masterSummary.csv')
 catSummary = read.csv('/home/production//AmazonCPI/catSummary.csv')
@@ -30,14 +32,27 @@ ggplot(masterSummary, aes(x=date, y=avgPrice))+geom_line( width=2, color="black"
 
 ```{r echo=FALSE, warning=FALSE}
 
-inputPanel({
-  selectInput(inputId = 'catSelect', label = 'Category Sub Select', choices = unique(catSummary$category), selected = unique(catSummary$category), multiple = T)
-})
-
 ggplot(catSummary, aes(x=date, y=(avgPrice), color=category))+geom_line()+
   labs(y="$", title="Nominal Prices")
 
 ggplot(catSummary, aes(x=date, y=log(avgPrice), color=category))+geom_line()+
   labs(y="log($)", title="Log Prices")
+
+```
+
+##Average Price by Category Table
+
+```{r echo=FALSE, warning=FALSE}
+trends=catSummary %>% 
+  		group_by(category) %>% 
+			mutate(t=1:length(category)) %>%
+  do(trendMod = lm(avgPrice ~ t, data = .)) %>%
+  tidy(trendMod) %>%
+  group_by(category) %>%
+  summarize(avgPrice=estimate[1],
+            trend=round(estimate[2],digits = 3))
+
+renderDataTable({return(trends)})
+				  
 
 ```

@@ -12,33 +12,33 @@ for(i in 1:length(files)){
   data =  read.csv(files[i])
   date = strsplit(strsplit(files[i], '/')[[1]][6], '_')[[1]][2]
   
-  #by Item %.%
-  masterSummary = data %.% 
-    mutate(azpriceNum=as.numeric(gsub('\\$','',as.character(data$azprice)))) %.%
-    group_by(itemTitle) %.%
+  #by Item %>%
+  masterSummary = data %>% 
+    mutate(azpriceNum=as.numeric(gsub('\\$','',as.character(data$azprice)))) %>%
+    group_by(itemTitle) %>%
     summarize(price=azpriceNum[1],
               reviews=as.numeric(as.character(reviews[1]))) %>%
-    na.omit %>%
-    summarize(avgPrice=mean(price),
-              sdPrice=sd(price),
+    #na.omit %>%
+    summarize(avgPrice=mean(price, na.rm = T),
+              sdPrice=sd(price,na.rm = T),
               numItems=length(itemTitle),
-              weightedAvg=sum(price*reviews)/sum(reviews),
+              weightedAvg=sum(price*reviews,na.rm = T)/sum(reviews,na.rm = T),
               date=ymd(date)
     )
   write.csv(masterSummary, file=gsub('Top100wCats', 'masterSummary',files[i]))
     
   #byCategory
-  catSummary = data %.% 
-    mutate(azpriceNum=as.numeric(gsub('\\$','',as.character(data$azprice)))) %.%
-    group_by(category, itemTitle) %.%
+  catSummary = data %>% 
+    mutate(azpriceNum=as.numeric(gsub('\\$','',as.character(data$azprice)))) %>%
+    group_by(category, itemTitle) %>%
     summarize(price=azpriceNum[1],
               reviews=as.numeric(as.character(reviews[1]))) %>%
-    na.omit %>%
-    group_by(category) %.%
-    summarize(avgPrice=mean(price),
-              sdPrice=sd(price),
+#     na.omit %>%
+    group_by(category) %>%
+    summarize(avgPrice=mean(price,na.rm = T),
+              sdPrice=sd(price,na.rm = T),
               numItems=length(itemTitle),
-              weightedAvg=sum(price*reviews)/sum(reviews),
+              weightedAvg=sum(price*reviews,na.rm = T)/sum(reviews,na.rm = ),
               date=ymd(date)
     ) 
   write.csv(catSummary, file=gsub('Top100wCats','categorySummary',files[i]))
