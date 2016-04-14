@@ -20,8 +20,8 @@ masterSummary$date = ymd(masterSummary$date)
 catSummary$date = ymd(catSummary$date)
 
 
-ggplot(masterSummary, aes(x=date, y=avgPrice))+geom_line( width=2, color="black")+
-  geom_line(stat="smooth", color="blue", alpha=.5)+
+ggplot(masterSummary, aes(x=date, y=avgPrice))+geom_line( color="black")+
+  geom_smooth()+
   labs(y="$")
   
 ```
