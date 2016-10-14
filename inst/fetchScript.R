@@ -38,7 +38,7 @@ for(i in 1:length(files)){
     summarize(avgPrice=mean(price,na.rm = T),
               sdPrice=sd(price,na.rm = T),
               numItems=length(itemTitle),
-              weightedAvg=sum(price*reviews,na.rm = T)/sum(reviews,na.rm = ),
+              weightedAvg=sum(price*reviews,na.rm = T)/sum(reviews,na.rm = T),
               date=ymd(date)
     ) 
   write.csv(catSummary, file=gsub('Top100wCats','categorySummary',files[i]))
@@ -53,8 +53,15 @@ if(i==1){
 }  
   
 }
-
+db = odbcConnect('localMySql')
+sqlQuery(db, 'USE AmazonCPI')
 #write the combined summary into 1 file for each
 write.csv(masterMasterSummary, '/home/production/AmazonCPI/masterSummary.csv')
 write.csv(masterCatSummary, '/home/production/AmazonCPI/catSummary.csv')
+
+sqlQuery(db, 'drop table masterMasterSummary;')
+sqlQuery(db, 'drop table masterCatSummary;')
+sqlSave(channel = db, dat = masterMasterSummary)
+sqlSave(channel = db, dat = masterCatSummary)
+
 
